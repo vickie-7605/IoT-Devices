@@ -1,19 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ESP32 LED Control</title>
+  <title>ESP32 Smart LED Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      width: 320px;
+    }
+
+    h2 {
+      margin-bottom: 30px;
+    }
+
+    .status {
+      margin: 20px 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .led-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin: 10px auto;
+      background-color: red;
+      box-shadow: 0 0 20px red;
+      transition: 0.3s;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .on-btn {
+      background: #00ff88;
+      color: black;
+    }
+
+    .off-btn {
+      background: #ff4d4d;
+      color: white;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+  </style>
 </head>
+
 <body>
 
-<h2>ESP32 LED Control</h2>
+<div class="card">
+  <h2>ESP32 Smart LED</h2>
 
-<button onclick="turnOn()">Turn ON</button>
-<button onclick="turnOff()">Turn OFF</button>
+  <div class="led-indicator" id="ledIndicator"></div>
+  <div class="status" id="statusText">Status: OFF</div>
+
+  <button class="on-btn" onclick="turnOn()">Turn ON</button>
+  <button class="off-btn" onclick="turnOff()">Turn OFF</button>
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -28,16 +103,33 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+const ledRef = ref(database, "LED");
+const indicator = document.getElementById("ledIndicator");
+const statusText = document.getElementById("statusText");
+
 window.turnOn = function() {
-  set(ref(database, "LED"), "ON");
+  set(ledRef, "ON");
 }
 
 window.turnOff = function() {
-  set(ref(database, "LED"), "OFF");
+  set(ledRef, "OFF");
 }
+
+onValue(ledRef, (snapshot) => {
+  const data = snapshot.val();
+
+  if (data === "ON") {
+    indicator.style.backgroundColor = "lime";
+    indicator.style.boxShadow = "0 0 20px lime";
+    statusText.innerText = "Status: ON";
+  } else {
+    indicator.style.backgroundColor = "red";
+    indicator.style.boxShadow = "0 0 20px red";
+    statusText.innerText = "Status: OFF";
+  }
+});
 
 </script>
 
 </body>
 </html>
-
